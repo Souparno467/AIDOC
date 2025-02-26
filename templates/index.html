@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI DOCTOR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3a8a, #22d3ee);
+            animation: backgroundShift 10s infinite alternate;
+        }
+        @keyframes backgroundShift {
+            0% { background: linear-gradient(135deg, #1e3a8a, #22d3ee); }
+            100% { background: linear-gradient(135deg, #14b8a6, #3b82f6); }
+        }
+        .glow-text {
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.8);
+        }
+        .response-box {
+            max-height: 300px;
+            overflow-y: auto;
+            word-wrap: break-word;
+        }
+        .stethoscope {
+            font-size: 100px;
+            display: block;
+            animation: rotateStethoscope 4s infinite linear;
+        }
+        @keyframes rotateStethoscope {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen text-white">
+    <h1 class="text-5xl font-bold glow-text">AI DOCTOR</h1>
+    <span class="stethoscope">🩺</span>
+    <div class="mt-6 p-4 bg-white bg-opacity-10 backdrop-blur-lg rounded-xl shadow-lg text-center w-80">
+        <input type="text" id="name" placeholder="Enter your name" class="p-2 rounded-lg text-black mb-2 w-full">
+        <input type="number" id="age" placeholder="Enter your age" class="p-2 rounded-lg text-black mb-2 w-full">
+        <select id="gender" class="p-2 rounded-lg text-black mb-2 w-full">
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" id="symptoms" placeholder="Enter your symptoms" class="p-2 rounded-lg text-black mb-2 w-full">
+        <button id="getAdvice" class="mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-lg transition-all">Get Advice</button>
+        <button id="askAgain" class="mt-3 px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded-lg transition-all">Ask Again</button>
+        <button id="downloadBtn" class="mt-3 px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded-lg transition-all hidden">Download Prescription</button>
+    </div>
+    <div id="adviceBox" class="mt-4 p-4 bg-white bg-opacity-10 backdrop-blur-lg rounded-lg shadow-lg text-black w-4/5 max-w-2xl response-box hidden"></div>
+    <script>
+        document.getElementById("getAdvice").addEventListener("click", async () => {
+            const name = document.getElementById("name").value;
+            const age = document.getElementById("age").value;
+            const gender = document.getElementById("gender").value;
+            const symptoms = document.getElementById("symptoms").value;
+            
+            if (!symptoms) {
+                alert("Please enter symptoms.");
+                return;
+            }
+            
+            document.getElementById("adviceBox").classList.remove("hidden");
+            document.getElementById("adviceBox").innerText = "Fetching medical advice...";
+            
+            const response = await fetch("/get_advice", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, age, gender, symptoms })
+            });
+            
+            const data = await response.json();
+            document.getElementById("adviceBox").innerText = data.advice;
+            if (data.pdf) {
+                document.getElementById("downloadBtn").classList.remove("hidden");
+                document.getElementById("downloadBtn").onclick = () => window.location.href = data.pdf;
+            }
+        });
+
+        document.getElementById("askAgain").addEventListener("click", () => {
+            document.getElementById("adviceBox").classList.add("hidden");
+            document.getElementById("adviceBox").innerText = "";
+            document.getElementById("name").value = "";
+            document.getElementById("age").value = "";
+            document.getElementById("gender").value = "";
+            document.getElementById("symptoms").value = "";
+            document.getElementById("downloadBtn").classList.add("hidden");
+        });
+    </script>
+</body>
+</html>
